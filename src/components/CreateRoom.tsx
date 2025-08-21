@@ -46,7 +46,7 @@ const CreateRoom = () => {
     }
 
   return (
-    <div className='min-w-sm mx-auto shadow-sm p-4 rounded-md'>
+    <div className='max-w-sm mx-auto shadow-sm p-2 rounded-md'>
        <h1 className='font-bold text-3xl border-b-2 border-gray-400 pb-2'>Join or Create Room</h1>
         <form onSubmit={createRoom}>
             <div className='grid gap-4 mt-4'>

@@ -20,14 +20,14 @@ export const userStatus = (roomId: string, userId: string, username: string) => 
   const statusRef = ref(realDb, `presence/${roomId}/${userId}`);
 
    set(statusRef, {
-     username: username.charAt(0).toUpperCase() + username.slice(1),
+     username: username,
      online: true,
      last_seen: rtdbTimestamp(),
      typing: false
    });
 
    onDisconnect(statusRef).set({
-     username: username.charAt(0).toUpperCase() + username.slice(1),
+     username: username,
      online: false,
      last_seen: rtdbTimestamp(),
      typing: false
@@ -64,7 +64,7 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
 
             await updateDoc(docRef, {
                 members: arrayUnion({
-                    username:username.toLowerCase(),
+                    username:username,
                     email: email.toLowerCase()
                 })
             });
@@ -77,7 +77,7 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
           date: serverTimestamp(),
           type:'joined',
           email: email,
-          sender: username.toLowerCase()
+          sender: username
         })
 
         return { 
@@ -101,7 +101,7 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
           date: serverTimestamp(),
           type:'created',
           email: email,
-          sender: username.toLowerCase()
+          sender: username
         })
 
     return { 

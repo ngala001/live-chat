@@ -14,6 +14,7 @@ import {
   } from "./ui/dropdown-menu"
 import { toast } from "sonner"
 import { useRoomContext } from "@/hooks/room-context"
+import { format } from 'date-fns'
 
 
 
@@ -36,7 +37,6 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
   const {room, getRoom} = useRoomContext()
 
   const owner = user?.email
-
 
   //get room details
  useEffect(() => {
@@ -72,7 +72,7 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
 }
     
   return (
-    <div className={`bg-gray-300 h-[400px] overflow-y-auto scrollbar-hide`}>
+    <div className={`bg-gray-300 dark:bg-gray-600 h-[400px] border-r-2 border-l-2 rounded-b-sm overflow-y-auto scrollbar-hide`}>
       {
         messages.length === 0 ? (
           <div className="flex justify-center items-center h-[400px] text-white">Start chat</div>
@@ -81,45 +81,63 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
          messages.map((msg) => (
           <div 
             key={msg.id}
-            className={`flex overflow-y-auto p-4 ${
+            className={`flex overflow-y-auto px-1 py-1 ${
               msg.sender_email === 'system' ?'justify-center':
               msg.sender_email === owner?'justify-end':'justify-start'
             }`}
           >
             <div 
-               className={`max-w-sm flex gap-3 items-center rounded py-1 px-3
-               ${ msg?.sender_email === 'system'?`${user?.email !== msg?.email && 'bg-gray-500 text-sm italic opacity-50 text-white'}`:
-                  msg?.sender_email === owner? 'bg-sky-400 text-white':'bg-base-100'
+               className={`max-w-sm flex rounded py-1 px-3
+               ${ msg?.sender_email === 'system' ?`
+               ${user?.email !== msg?.email && 'bg-gray-500 text-sm italic opacity-50 text-white'}`:
+                  msg?.sender_email === owner? ' dark:text-black text-white':'text-black'
                 }
                `}>
                 {
                   msg?.sender_email ==='system' ? (
                     user?.email !== msg?.email ? (
-                      <span>{msg?.chat}</span>
+                      <span className="text-xs">{msg?.chat}</span>
                     ):(
-                      messages.length < 2 && 
+                      messages.length < 2 &&
                       <span className="h-56 flex justify-center items-center">Start conversation!</span>
-                    ) 
+                    )
                   ):(
-                    <>
-                    <Image src={msg?.photo_url!} className="rounded-full" width={30} height={30} alt=""/>
-                    <div>
-                       <p>{msg?.chat}</p>
-                        <span className="justify-self-end text-sm text-gray-400">{msg.date?.toDate().toLocaleString()}</span>
-                    </div>
-                    {
-                      user?.email === msg.sender_email && (
-                        <div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger><CircleAlert className="w-4 h-4 text-gray-600" /></DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem className="cursor-pointer" onClick={() =>deleteChat(roomId, msg.id)}>Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                    <div className={`flex gap-2`}>
+                      <div className="shrink-0 w-6 h-6 relative">
+                       <Image 
+                          src={msg?.photo_url!} 
+                          className="rounded-full object-center" 
+                          fill 
+                          alt=""/>
+                      </div>
+                    <div className={`rounded-bl-xl rounded-tr-xl
+                        ${msg?.sender_email === owner? 'bg-sky-400':'bg-base-100 text-black'}
+                        `}>
+                        <div className="grid">
+                           <div className="flex rounded-tr-xl text-xs items-center text-gray-400 justify-between gap-6 py-1 px-2 bg-gray-200">
+                              <p>{msg?.sender? msg.sender:<span className="loading loading-dots loading-sm"></span>}</p>
+                               <span className="justify-self-end text-xs text-gray-400">
+                                  { msg?.date ? format(msg?.date?.toDate(), "do MMM HH:mm a"):"now"}
+                                </span>
+                           </div>
+                          <p className="py-1 px-2">{msg?.chat}</p>
                         </div>
-                      )
-                    }
-                    </>
+                    </div>
+                        {
+                          user?.email === msg.sender_email && (
+                            <div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <CircleAlert className="w-4 h-4 shrink-0 text-gray-600 dark:text-white cursor-pointer" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem className="cursor-pointer" onClick={() =>deleteChat(roomId, msg.id)}>Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )
+                        }
+                    </div>
                   )
                 }
             </div>

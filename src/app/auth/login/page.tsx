@@ -1,7 +1,6 @@
 "use client"
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/auth-context'
 import { auth } from '@/lib/firebase'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { useRouter } from 'next/navigation'

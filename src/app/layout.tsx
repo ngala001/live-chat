@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/hooks/auth-context";
 import RoomProvider from "@/hooks/room-context";
+import { ThemeProvider } from "@/hooks/theme-context";
 
 
 export const metadata: Metadata = {
@@ -17,15 +18,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <div className="px-3">
+        <div>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
            <Toaster position="top-center" richColors />
            <AuthProvider>
             <RoomProvider>
               {children}
             </RoomProvider>
            </AuthProvider>
+           </ThemeProvider>
         </div>
       </body>
     </html>

@@ -2,7 +2,7 @@
 
 import { RoomType } from "@/components/ChatRoom"
 import { db } from "@/lib/firebase"
-import { doc, getDoc} from "firebase/firestore"
+import { collection, doc, getDoc} from "firebase/firestore"
 import { createContext, useContext, useState } from "react"
 import { toast } from "sonner"
 
@@ -11,10 +11,16 @@ type RoomContextType = {
   getRoom: (roomId: string) => Promise<void>
 }
 
+type RoomMembers = {
+  username: string,
+  email: string
+}
+
 const RoomContext = createContext<RoomContextType | null>(null)
 
 export default function RoomProvider({children}:{children:React.ReactNode}) {
     const [room, setRoom ] = useState<RoomType>({})
+    const [members, setMembers] = useState<RoomMembers[]>([])
 
      const getRoom = async(roomId: string) => {
         const docRef = doc(db,'rooms', roomId)
@@ -27,7 +33,6 @@ export default function RoomProvider({children}:{children:React.ReactNode}) {
         }
            
     }
-
 
     return (
       <RoomContext.Provider value={{ room, getRoom }}>

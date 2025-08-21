@@ -1,22 +1,12 @@
 "use client"
 import { auth, db, realDb } from '@/lib/firebase'
-import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore'
+import { addDoc, collection, doc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore'
 import { FormEvent, useEffect, useState} from 'react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { toast } from 'sonner'
 import ChatMessage from './ChatMessage'
 import { useAuth } from '@/hooks/auth-context'
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
-    DropdownMenuLabel, 
-    DropdownMenuSeparator, 
-    DropdownMenuTrigger 
-} from './ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { LogOut, Plus, Settings, User } from 'lucide-react'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { useRoomContext } from '@/hooks/room-context'
@@ -24,6 +14,9 @@ import { onValue, ref, update, serverTimestamp as rtdTimestamp } from 'firebase/
 import { leaveRoom, userStatus } from '@/lib/room-actions'
 import { useCreateRoomStore } from '@/store/create-roomStore'
 import { debounce } from 'lodash'
+import { MoreHorizontal, Route, Settings2, Users } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { Badge } from './ui/badge'
 
 type Member = {
     username: string;
@@ -54,6 +47,7 @@ const ChatRoom = ({roomId}:{roomId: string}) => {
     const [users, setUsers] = useState<UsersType>({})
     const [typingUsers, setTypingUsers ] = useState<string[]>([])
     const [onlineUsers, setOnlineUsers ] = useState<string[]>([])
+    const [chatSender, setChatSender ] = useState('')
     
 
     const {user} = useAuth()
@@ -66,6 +60,17 @@ const ChatRoom = ({roomId}:{roomId: string}) => {
       getRoom(roomId)
 
     },[]);
+
+//memembers
+
+useEffect(() => {
+    if(room?.members && user?.email) {
+        const member = room.members?.find((mb) => mb.email === user?.email)
+        if(member?.username) {
+            setChatSender(member?.username!)
+        }
+    }
+},[room?.members, user?.email])
 
  //set istyping..
  useEffect(() => {
@@ -142,7 +147,8 @@ const ChatRoom = ({roomId}:{roomId: string}) => {
                 chat,
                 sender_email: user?.email,
                 photo_url: user?.photoURL,
-                date: serverTimestamp()
+                date: serverTimestamp(),
+                sender: chatSender
             })
 
             setChat("")
@@ -184,10 +190,10 @@ const ChatRoom = ({roomId}:{roomId: string}) => {
     },[roomId, user?.uid])
    
   return (
-    <main className='max-w-3xl relative mx-auto'>
+    <main className='md:max-w-3xl px-2 relative mx-auto'>
 
         <div className=''>
-            <div className='bg-base-300 flex items-center justify-between py-3 px-4 rounded-t-lg shadow-sm'>
+            <div className='flex items-center border-t-2 border-r-2 border-l-2 z-50 justify-between py-3 px-4 rounded-t-lg shadow-sm'>
                 <div>
                     <h1 className='font-semibold text-2xl'>
                         { room?.name ? room?.name?.charAt(0).toUpperCase() + room?.name?.slice(1)! :""}
@@ -196,52 +202,45 @@ const ChatRoom = ({roomId}:{roomId: string}) => {
                 <div>
                     {
                         typingUsers.length > 0 && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-white">
                                 {typingUsers.join(",")} {typingUsers.length > 1 ? "are" : "is"} typing...
                             </span>
                         )
                     }
                 </div>
-                <div className='flex items-center gap-2'>
-                    <h1>{user?.displayName}</h1>
+                <div>
                     <DropdownMenu>
-                        <DropdownMenuTrigger className='cursor-pointer outline-0'>
-                            <Avatar>
-                                <AvatarImage src={user?.photoURL!}/>
-                                <AvatarFallback></AvatarFallback>
-                            </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuLabel>Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator/>
-                            <DropdownMenuItem className='cursor-pointer'>
-                                <User/>
-                                Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => {
-                               leaveRoom(roomId, user?.uid!, username);
-                               router.push('/')
-                              }} 
-                              className='cursor-pointer'>
-                                <Plus/>
-                                 Add Room
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='cursor-pointer'>
-                                <Settings/>
-                                Settings
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                                className='cursor-pointer' 
-                                variant='destructive'
-                                onClick={logout}
-                            >
-                                    <LogOut/>
-                                    LogOut
-                            </DropdownMenuItem>
+                      <DropdownMenuTrigger asChild>
+                        <div 
+                         className='border p-1 cursor-pointer flex items-center rounded-full justify-between dark:border-white border-gray-500'>
+                        <MoreHorizontal className='w-4 h-4 font-bold'/>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        <DropdownMenuItem 
+                         className='cursor-pointer'>
+                            <Users/>
+                            <span>
+                              Participants
+                              <Badge className='ml-2 h-5 p-2 w-5 rounded-full' variant={"default"}>9</Badge>
 
-                        </DropdownMenuContent>
+                            </span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                         className='cursor-pointer'>
+                            <Route/>
+                            Leave room
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                         className='cursor-pointer'>
+                            <Settings2/>
+                            Room settings
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+
                     </DropdownMenu>
+
+                    
                 </div>
             </div>
             {/* MESSAGES SECTION PANEL */}

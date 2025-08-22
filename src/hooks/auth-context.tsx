@@ -35,7 +35,7 @@ export default function AuthProvider({children}:{children:React.ReactNode}) {
 
    if(loading) {
      return (
-        <div className="flex flex-col items-center justify-center min-h-86">
+        <div className="flex h-screen flex-col items-center justify-center">
             <p>
               <span className="loading loading-ring loading-xs"></span>
               <span className="loading loading-ring loading-sm"></span>

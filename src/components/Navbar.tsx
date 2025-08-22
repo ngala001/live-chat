@@ -62,7 +62,7 @@ const Navbar = () => {
                         <DropdownMenuTrigger className='cursor-pointer outline-0'>
                             <Avatar>
                                 <AvatarImage src={user?.photoURL!}/>
-                                <AvatarFallback></AvatarFallback>
+                                <AvatarFallback>AO</AvatarFallback>
                             </Avatar>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

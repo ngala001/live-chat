@@ -4,22 +4,22 @@ import { Label } from '@/components/ui/label'
 import { auth } from '@/lib/firebase'
 import { 
     GoogleAuthProvider, 
-    signInWithEmailAndPassword, 
     signInWithPopup,
+    createUserWithEmailAndPassword
 } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import React, { FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
-const Login = () => {
+const Register = () => {
     const [ email, setEmail ] = useState('')
     const [ password, setPassword ] = useState('')
 
     const router = useRouter()
 
-    //login & sign up
+    //sign up user
     
-    const loginWithPassword = async(e: FormEvent) => {
+    const createAccount = async(e: FormEvent) => {
          e.preventDefault();
 
         if(!email.trim() || !password.trim()) {
@@ -27,10 +27,15 @@ const Login = () => {
             return
         }
 
-            try {
-                await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password.trim())
-                toast.success("You're logged in successfully")
-                router.push('/')
+        if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)) {
+            toast.error("Only Gmail accounts are allowed");
+            return
+        }
+
+           try {
+                await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password.trim())
+                toast.success("Account is created successfully")
+                router.push('/auth/login')
             } catch (error) {
                if(error instanceof Error){
                 toast.error(error?.message)
@@ -38,8 +43,8 @@ const Login = () => {
                } else {
                  toast.error("Error occured during login")
                } 
-            }
-    }
+            } 
+        }
 
     const LoginInWithGoogle = () => {
         const provider = new GoogleAuthProvider()
@@ -49,9 +54,9 @@ const Login = () => {
 
   return (
     <div className='h-screen flex items-center justify-center'>
-        <form onSubmit={loginWithPassword} className='md:min-w-lg max-w-md mx-auto border-2 py-10 rounded px-10 shadow grid gap-4' >
+        <form onSubmit={createAccount} className='md:min-w-lg max-w-md mx-auto border-2 py-10 rounded px-10 shadow grid gap-4' >
             <h1 className='border-b-2 pb-2 border-gray-500 font-bold text-2xl'>
-                Login
+                Create Account
             </h1>
             <div className='grid gap-4 mt-4'>
                 <Label>Email Address</Label>
@@ -74,11 +79,11 @@ const Login = () => {
             </div>
             <div className='text-center mt-2'>
                 <button className='btn px-12 btn-primary'>
-                   Login
+                     Sign Up
                 </button>
             </div>
             <div className='text-center'>
-              <span className='cursor-pointer' onClick={() => router.push('/auth/signUp')}>Do not have an account? Sign Up</span>
+                <span className='cursor-pointer' onClick={() => router.push('/auth/login')}>Already have an account? sign In</span>
             </div>
             <div className='divider'>Or</div>
             <div className='text-center'>
@@ -92,4 +97,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default Register

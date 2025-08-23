@@ -10,8 +10,6 @@ import { useAuth } from '@/hooks/auth-context'
 import { useCreateRoomStore } from '@/store/create-roomStore'
 
 const CreateRoom = () => {
-    /* const [roomName, setRoomName ] = useState("")
-    const [username, setUsername ] = useState("") */
     const [loading, setLoading ] = useState(false)
 
     const router = useRouter()
@@ -32,8 +30,8 @@ const CreateRoom = () => {
             const {room, isNew}= await joinOrCreateRoom(roomName, username, user?.email!)
             userStatus(room?.id, user?.uid!, username)
 
-           setRoomName("")
-           setUsername("")
+           setRoomName(roomName)
+           setUsername(username)
            toast.success(isNew ? "Room created successfully":"Rejoined an existing room")
            router.push(`chatroom/${room.id}`)
 
@@ -55,7 +53,6 @@ const CreateRoom = () => {
                 <Input 
                   type='text' 
                   placeholder='example-(@patel)'
-                  value={username}
                   onChange={(e) => setUsername(e.target.value)}
 
                 />
@@ -65,7 +62,6 @@ const CreateRoom = () => {
                 <Input 
                   type='text' 
                   placeholder='Room'
-                  value={roomName}
                   onChange={(e) => setRoomName(e.target.value)}
 
                 />

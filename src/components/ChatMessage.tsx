@@ -5,7 +5,7 @@ import { db } from "@/lib/firebase"
 import { collection, deleteDoc, doc, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore"
 import { CircleAlert } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { 
    DropdownMenu,
    DropdownMenuTrigger,
@@ -37,6 +37,13 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
   const {room, getRoom} = useRoomContext()
 
   const owner = user?.email
+
+  //scrollintoview
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+   bottomRef.current?.scrollIntoView({behavior:'smooth'})
+  },[messages])
 
   //get room details
  useEffect(() => {
@@ -145,7 +152,7 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
          ))
         )
       }
-       
+      <div ref={bottomRef} className="py-2"></div> 
     </div>
   )
 }

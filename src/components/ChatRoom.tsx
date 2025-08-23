@@ -84,7 +84,7 @@ useEffect(() => {
         .filter(([uid, u]) => u?.typing && uid !== user?.uid)
         .map(([_, u]) => u.username);
 
-      setTypingUsers(usersTyping);
+      setTypingUsers(usersTyping || user?.email);
     });
 
     return () => unsubscribe();
@@ -213,7 +213,7 @@ useEffect(() => {
                     {
                         typingUsers.length > 0 && (
                             <span className="text-sm text-gray-500 dark:text-white">
-                                {typingUsers.join(",")} {typingUsers.length > 1 ? "are" : "is"} typing...
+                                {[...new Set(typingUsers.filter(Boolean))].join(",")}{" "} {typingUsers.length > 1 ? "are" : "is"} typing...
                             </span>
                         )
                     }

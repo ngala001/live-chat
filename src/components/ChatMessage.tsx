@@ -152,7 +152,7 @@ const ChatMessage = ({roomId}:{roomId: string}) => {
          ))
         )
       }
-      <div ref={bottomRef} className="py-2"></div> 
+      <div ref={bottomRef} className="py-1"></div> 
     </div>
   )
 }

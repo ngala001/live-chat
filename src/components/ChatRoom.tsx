@@ -146,7 +146,7 @@ useEffect(() => {
             await addDoc(collection(db,`rooms/${roomId}/messages`), {
                 chat,
                 sender_email: user?.email,
-                photo_url: user?.photoURL,
+                photo_url: user?.photoURL || "https://avatar.iran.liara.run/public",
                 date: serverTimestamp(),
                 sender: chatSender
             })

@@ -1,18 +1,29 @@
 
 import { 
      addDoc, 
+     arrayRemove, 
      arrayUnion, 
      collection,
      doc,
+     getDoc,
      getDocs, 
      query, 
      serverTimestamp,
+     Timestamp,
      updateDoc, 
      where 
 } from "firebase/firestore"
+
 import { db, realDb } from "./firebase"
 import { RoomType } from "@/components/ChatRoom";
-import { onDisconnect, ref, set,  serverTimestamp as rtdbTimestamp } from "firebase/database";
+import { onDisconnect, ref, set,  serverTimestamp as rtdbTimestamp, remove } from "firebase/database";
+
+type ChatType = {
+    chat: string
+    sender_email: string
+    date: Timestamp,
+    email?: string
+}
 
 //realtime database setup
 
@@ -34,15 +45,37 @@ export const userStatus = (roomId: string, userId: string, username: string) => 
    })
 }
 
-export const leaveRoom = (roomId: string, userId: string, username: string) => {
+export const leaveRoom = async(roomId: string, userId: string, email: string) => {
   const statusRef = ref(realDb, `presence/${roomId}/${userId}`);
+  const roomDoc = doc(db,'rooms', roomId)
+  const chatRef = collection(db,`rooms/${roomId}/messages`)
+  //remove presence
+  await remove(statusRef);
+  //remove from members/participants
+  const room = await getDoc(roomDoc)
+  if(!room.exists()) {
+    throw new Error("No room to be exited")
+  }
 
-  set(statusRef, {
-    username,
-    online: false,
-    last_seen: serverTimestamp(),
-    typing: false,
-  });
+  const members = room.data()?.members || [];
+
+  const exitingMember = members.find((member:{username: string, email: string}) => member.email === email)
+
+  if(!exitingMember){
+   throw new Error("Member not found")
+  }
+
+ await updateDoc(roomDoc, {
+  members: arrayRemove(exitingMember)
+ })
+
+ await addDoc(chatRef, {
+  chat:`${exitingMember.username} left room`,
+  sender_email:"system",
+  date: serverTimestamp(),
+  email: exitingMember.email
+ })
+   
 };
 
 
@@ -72,7 +105,7 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
         
 
         await addDoc(collection(db,`rooms/${existingRoom.id}/messages`),{
-          chat: `${username.charAt(0).toUpperCase() + username.slice(1)} joined room`,
+          chat: `${username} joined room`,
           sender_email:'system',
           date: serverTimestamp(),
           type:'joined',
@@ -96,7 +129,7 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
     })
 
     await addDoc(collection(db,`rooms/${newRoom.id}/messages`),{
-          chat: `${username.charAt(0).toUpperCase() + username.slice(1)} created room`,
+          chat: `${username } created room`,
           sender_email:'system',
           date: serverTimestamp(),
           type:'created',

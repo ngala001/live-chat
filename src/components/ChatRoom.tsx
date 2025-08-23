@@ -170,9 +170,19 @@ useEffect(() => {
         }
     }
 
-    const logout = async() => {
-      await signOut(auth);
-      router.push('/auth/login')
+    const quiteRoom = async() => {
+      try {
+        await leaveRoom(roomId, user?.uid!, user?.email!)
+        toast.success(`Your successfully left ${room?.name} room`)
+        router.push('/')
+      } catch (error) {
+        if(error instanceof Error) {
+            toast.error(error.message)
+            return
+        }else {
+            toast.error("Error occured while leaving the room")
+        }
+      }
     }
 
     //toast online users
@@ -227,7 +237,8 @@ useEffect(() => {
                             </span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                         className='cursor-pointer'>
+                           onClick={quiteRoom}
+                           className='cursor-pointer'>
                             <Route/>
                             Leave room
                         </DropdownMenuItem>

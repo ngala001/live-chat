@@ -33,6 +33,7 @@ const CreateRoom = () => {
             userStatus(room?.id, user?.uid!, username)
 
            setRoomName("")
+           setUsername("")
            toast.success(isNew ? "Room created successfully":"Rejoined an existing room")
            router.push(`chatroom/${room.id}`)
 

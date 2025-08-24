@@ -89,8 +89,8 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
         const existingRoom = snapshot.docs[0]
         const docRef = doc(db,'rooms', existingRoom.id)
 
-        const alreadyJoined = existingRoom.data()?.members?.some((member:{username:string, email: string}) => 
-           member.username.toLowerCase() === username.toLowerCase() || member.email.toLowerCase() === email.toLowerCase()
+        const alreadyJoined = existingRoom.data()?.members?.find((member:{username:string, email: string}) => 
+            member.email.toLowerCase() === email.toLowerCase()
         );
 
         if(!alreadyJoined) {
@@ -101,22 +101,27 @@ export const joinOrCreateRoom = async(roomName: string, username: string, email:
                     email: email.toLowerCase()
                 })
             });
-        }
+            
+            await addDoc(collection(db,`rooms/${existingRoom.id}/messages`),{
+              chat: `${username} joined room`,
+              sender_email:'system',
+              date: serverTimestamp(),
+              type:'joined',
+              email: email,
+              sender: username
+            })
+          } else if(alreadyJoined.username.toLowerCase() !== username.toLowerCase() && alreadyJoined.email.toLowerCase() === email.toLowerCase()){
+
+            throw new Error("This email is already registered with a different username!")
+          }
+
+
+          return { 
+              room: {id: existingRoom.id, ...existingRoom.data() as RoomType}, 
+              isNew: false
+          }
         
 
-        await addDoc(collection(db,`rooms/${existingRoom.id}/messages`),{
-          chat: `${username} joined room`,
-          sender_email:'system',
-          date: serverTimestamp(),
-          type:'joined',
-          email: email,
-          sender: username
-        })
-
-        return { 
-            room: {id: existingRoom.id, ...existingRoom.data() as RoomType}, 
-            isNew: false
-        }
 
     }
 

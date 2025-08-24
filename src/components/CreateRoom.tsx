@@ -28,7 +28,11 @@ const CreateRoom = () => {
        try {
            setLoading(true)
             const {room, isNew}= await joinOrCreateRoom(roomName, username, user?.email!)
-            userStatus(room?.id, user?.uid!, username)
+            if(isNew) {
+              userStatus(room?.id, user?.uid!, username)
+            } else{
+
+            }
 
            setRoomName(roomName)
            setUsername(username)
@@ -37,7 +41,11 @@ const CreateRoom = () => {
 
        } catch (error) {
          console.log(error)
-         toast.error("Failed to join the Room")
+         if(error instanceof Error) {
+          toast.error(error.message)
+         } else {
+           toast.error("Failed to join the Room")
+         }
        }finally {
         setLoading(false)
        }

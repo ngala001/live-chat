@@ -7,7 +7,6 @@ import { Button } from './ui/button'
 import { toast } from 'sonner'
 import ChatMessage from './ChatMessage'
 import { useAuth } from '@/hooks/auth-context'
-import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { useRoomContext } from '@/hooks/room-context'
 import { onValue, ref, update, serverTimestamp as rtdTimestamp } from 'firebase/database'
@@ -17,6 +16,7 @@ import { debounce } from 'lodash'
 import { MoreHorizontal, Route, Settings2, Users } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { Badge } from './ui/badge'
+import Participants from './Participants'
 
 type Member = {
     username: string;
@@ -24,13 +24,12 @@ type Member = {
 }
 
 type UsersType = {
-    [uid: string]:{
+        id: string
         username: string,
         online: boolean,
-        typing: boolean,
-        last_seen: number
+        typing?: boolean,
+        last_seen?: number
     }
-}
 
 export type RoomType = {
     id?: string;
@@ -40,14 +39,28 @@ export type RoomType = {
     members?: Member[]
 }
 
+const pple =[
+  {
+    id: "e1223sge"!,
+    online: true,
+    name: "alex"
+},
+  {
+    id: "e1245syr"!,
+    online: false,
+    name: "Okumu"
+},
+] 
+
 
 const ChatRoom = ({roomId}:{roomId: string}) => {
     const [chat, setChat ] = useState("")
     const [sending, setSending ] = useState(false)
-    const [users, setUsers] = useState<UsersType>({})
+    const [users, setUsers] = useState<UsersType[]>([])
     const [typingUsers, setTypingUsers ] = useState<string[]>([])
     const [onlineUsers, setOnlineUsers ] = useState<string[]>([])
     const [chatSender, setChatSender ] = useState('')
+    const [open, setOpen ] = useState(false)
     
 
     const {user} = useAuth()
@@ -93,9 +106,15 @@ useEffect(() => {
     //user status listener
     useEffect(() => {
         const userRef = ref(realDb,`presence/${roomId}`)
+
         const unsubscribe = onValue(userRef, (snapshot) => {
         const users = snapshot.val() || {};
-          setUsers(users)
+
+        const usersArray = Object.entries(users).map(([uid, info]: any) => ({
+            id: uid,
+            ...info
+        }))
+          setUsers(usersArray)
         });
 
         //reconects on refresh
@@ -185,19 +204,8 @@ useEffect(() => {
       }
     }
 
-    //toast online users
-    useEffect(() => {
-      const isOnline = Object.entries(users)
-       .filter(([uid, u]) => u?.online && uid !== user?.uid)
-       .map(([_, u]) => u.username)
 
-       setOnlineUsers(isOnline)
 
-       if(onlineUsers.length > 0) {
-        toast.success(`${onlineUsers.join(",")} ${onlineUsers.length > 1 ? 'are':'is'} online`)
-       }
-
-    },[roomId, user?.uid])
    
   return (
     <main className='md:max-w-3xl px-2 relative mx-auto'>
@@ -227,14 +235,17 @@ useEffect(() => {
                         </div>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align='end'>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem onClick={() => setOpen(true)}
                          className='cursor-pointer'>
-                            <Users/>
-                            <span>
-                              Participants
-                              <Badge className='ml-2 h-5 p-2 w-5 rounded-full' variant={"default"}>9</Badge>
-
-                            </span>
+                                    <div className="flex items-center gap-2 cursor-pointer">
+                                    <Users />
+                                    <span className="flex items-center gap-1">
+                                        Participants
+                                        <Badge variant="default" className="ml-1 h-5 w-5 rounded-full">
+                                         {users.length}
+                                        </Badge>
+                                    </span>
+                                    </div>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                            onClick={quiteRoom}
@@ -285,7 +296,7 @@ useEffect(() => {
             </div>
         </form>
 
-
+        <Participants participants={users} open={open} setOpen={setOpen}/>
     </main>
   )
 }
